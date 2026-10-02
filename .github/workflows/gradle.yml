@@ -1,0 +1,44 @@
+name: Generate Gradle Wrapper
+
+on:
+  workflow_dispatch:
+    inputs:
+      gradle_version:
+        description: 'Gradle version to generate (e.g., 8.7, 8.10)'
+        required: true
+        default: '8.10'
+
+jobs:
+  generate-wrapper:
+    name: Generate Gradle Wrapper
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Install Gradle
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: ${{ github.event.inputs.gradle_version }}
+
+      - name: Generate Wrapper Files
+        run: |
+          cd android
+          gradle wrapper --gradle-version ${{ github.event.inputs.gradle_version }}
+          chmod +x gradlew
+
+      - name: Commit & Push Wrapper Files
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "build(gradle): generate Gradle wrapper v${{ github.event.inputs.gradle_version }}"
+          file_pattern: "android/gradlew android/gradlew.bat android/gradle/wrapper/*"
