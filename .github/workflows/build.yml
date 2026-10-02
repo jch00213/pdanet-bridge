@@ -25,7 +25,7 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
         with:
-          gradle-version: '8.10.2' # Forces Gradle 8.x compatible with AGP 8.8.0
+          gradle-version: '8.10.2'
 
       - name: Setup Android NDK
         uses: nttld/setup-ndk@v1
@@ -58,14 +58,7 @@ jobs:
           cargo ndk -t arm64-v8a -t x86_64 -o ../android/app/src/main/jniLibs build --release
 
       - name: Build Debug APK with Gradle
-        run: |
-          cd android
-          if [ -f "./gradlew" ]; then
-            chmod +x gradlew
-            ./gradlew assembleDebug --stacktrace
-          else
-            gradle assembleDebug --stacktrace
-          fi
+        run: gradle assembleDebug --project-dir android --stacktrace
 
       - name: Upload Debug APK Artifact
         uses: actions/upload-artifact@v4
@@ -73,4 +66,3 @@ jobs:
           name: com.jeremy.pdanet.bridge-debug
           path: android/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
-          
