@@ -1,7 +1,7 @@
 name: Build Android App & Native Rust Engine
 
 on:
-  push:
+  push: 
     branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
@@ -21,7 +21,11 @@ jobs:
         with:
           distribution: 'zulu'
           java-version: '17'
-          cache: 'gradle'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: '8.10.2' # Forces Gradle 8.x compatible with AGP 8.8.0
 
       - name: Setup Android NDK
         uses: nttld/setup-ndk@v1
@@ -53,15 +57,15 @@ jobs:
           cd rust
           cargo ndk -t arm64-v8a -t x86_64 -o ../android/app/src/main/jniLibs build --release
 
-      - name: Grant Execute Permission for Gradle
-        run: |
-          cd android
-          chmod +x gradlew
-
       - name: Build Debug APK with Gradle
         run: |
           cd android
-          ./gradlew assembleDebug --stacktrace
+          if [ -f "./gradlew" ]; then
+            chmod +x gradlew
+            ./gradlew assembleDebug --stacktrace
+          else
+            gradle assembleDebug --stacktrace
+          fi
 
       - name: Upload Debug APK Artifact
         uses: actions/upload-artifact@v4
@@ -69,3 +73,4 @@ jobs:
           name: com.jeremy.pdanet.bridge-debug
           path: android/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
+          
