@@ -1,8 +1,7 @@
 fn main() {
     cxx_build::bridge("src/lib.rs")
-        .file("src/lib.rs")
         .flag_if_supported("-std=c++14")
-        .compile("socks_bridge");
+        .compile("socks_bridge_cxx");
 
     println!("cargo:rerun-if-changed=src/lib.rs");
     println!("cargo:rerun-if-changed=src/socks.rs");
