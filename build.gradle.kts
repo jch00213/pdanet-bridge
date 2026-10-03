@@ -1,11 +1,9 @@
-// Top-level build file where plugins are declared but not applied directly to the root project.
 plugins {
-    alias(libs.plugins.android.application) apply false
-    alias(libs.plugins.kotlin.android) apply false
-    alias(libs.plugins.kotlin.compose) apply false
+    id("com.android.application") version "8.8.0" apply false
+    id("org.jetbrains.kotlin.android") version "2.1.0" apply false
+    id("org.jetbrains.kotlin.plugin.compose") version "2.1.0" apply false
 }
 
-// Clean task to delete the build directory across all modules
 tasks.register<Delete>("clean") {
     delete(rootProject.layout.buildDirectory)
 }
