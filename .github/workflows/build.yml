@@ -22,6 +22,7 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: '1.22'
+          cache: true
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
@@ -65,10 +66,23 @@ jobs:
 
       - name: Cross-Compile libtailscale (arm64-v8a & x86_64)
         run: |
-          # libtailscale sits at root level in tailscale/libtailscale, not under cmd/
-          cd /tmp/tailscale/libtailscale
+          # Dynamically locate libtailscale directory regardless of upstream changes
+          LIBTAILSCALE_DIR=$(find /tmp/tailscale -type f -name "main.go" -path "*/libtailscale/*" -exec dirname {} + | head -n 1)
 
-          # Resolve NDK path
+          if [ -z "$LIBTAILSCALE_DIR" ]; then
+            # Fallback search if path structure differs
+            LIBTAILSCALE_DIR=$(find /tmp/tailscale -type d -name "libtailscale" | head -n 1)
+          fi
+
+          if [ -z "$LIBTAILSCALE_DIR" ]; then
+            echo "Error: Could not locate libtailscale directory inside /tmp/tailscale"
+            exit 1
+          fi
+
+          echo "Targeting libtailscale at: $LIBTAILSCALE_DIR"
+          cd "$LIBTAILSCALE_DIR"
+
+          # Resolve NDK path reliably
           NDK_PATH="${ANDROID_NDK_HOME:-$ANDROID_NDK_ROOT}"
 
           # Ensure target jniLibs directories exist
