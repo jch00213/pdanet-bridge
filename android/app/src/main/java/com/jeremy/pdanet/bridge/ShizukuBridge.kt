@@ -14,11 +14,22 @@ object ShizukuBridge {
         }
     }
 
+    private fun shizukuNewProcess(cmd: Array<String>, env: Array<String>? = null, dir: String? = null): Process {
+        val method = Shizuku::class.java.getDeclaredMethod(
+            "newProcess",
+            Array<String>::class.java,
+            Array<String>::class.java,
+            String::class.java
+        )
+        method.isAccessible = true
+        return method.invoke(null, cmd, env, dir) as Process
+    }
+
     fun execCommand(command: String): String {
         if (!isShizukuReady()) return ""
 
         return try {
-            val process = Shizuku.newProcess(arrayOf("sh", "-c", command), null, null)
+            val process = shizukuNewProcess(arrayOf("sh", "-c", command), null, null)
             val reader = BufferedReader(InputStreamReader(process.inputStream))
             val result = reader.readText()
             process.waitFor()
