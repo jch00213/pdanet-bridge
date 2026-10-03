@@ -1,4 +1,4 @@
-name: Build Android App & Native Rust Engine
+name: Build Android App & Native Engines
 
 on:
   workflow_dispatch:
@@ -17,6 +17,11 @@ jobs:
         with:
           distribution: 'zulu'
           java-version: '17'
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
@@ -52,6 +57,28 @@ jobs:
         run: |
           cd rust
           cargo ndk -t arm64-v8a -t x86_64 -o ../android/app/src/main/jniLibs build --release
+
+      - name: Clone Tailscale Upstream
+        run: |
+          git clone --depth 1 https://github.com/tailscale/tailscale.git /tmp/tailscale
+
+      - name: Cross-Compile libtailscale (arm64-v8a & x86_64)
+        run: |
+          cd /tmp/tailscale/cmd/libtailscale
+
+          # Ensure target jniLibs directories exist
+          mkdir -p $GITHUB_WORKSPACE/android/app/src/main/jniLibs/arm64-v8a
+          mkdir -p $GITHUB_WORKSPACE/android/app/src/main/jniLibs/x86_64
+
+          # Build arm64-v8a libtailscale.so
+          CGO_ENABLED=1 GOOS=android GOARCH=arm64 \
+          CC=$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android26-clang \
+          go build -buildmode=c-shared -o $GITHUB_WORKSPACE/android/app/src/main/jniLibs/arm64-v8a/libtailscale.so .
+
+          # Build x86_64 libtailscale.so
+          CGO_ENABLED=1 GOOS=android GOARCH=amd64 \
+          CC=$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/x86_64-linux-android26-clang \
+          go build -buildmode=c-shared -o $GITHUB_WORKSPACE/android/app/src/main/jniLibs/x86_64/libtailscale.so .
 
       - name: Build Debug APK
         run: gradle :android:app:assembleDebug --stacktrace
