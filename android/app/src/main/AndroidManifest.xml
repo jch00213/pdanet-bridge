@@ -1,13 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- Permissions required for networking and tethering -->
+    <!-- Core Networking & Hardware State Permissions -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
-    
-    <!-- Foreground Service Permissions (Required for Android 14+) -->
+
+    <!-- Wi-Fi Direct (P2P) & Location Permissions -->
+    <!-- NEARBY_WIFI_DEVICES is required for P2P on Android 13+ (API 33+) -->
+    <uses-permission 
+        android:name="android.permission.NEARBY_WIFI_DEVICES" 
+        android:usesPermissionFlags="neverForLocation" />
+    <!-- Legacy location fallback for P2P peer/group discovery on API < 33 -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+
+    <!-- Foreground Service & System Permissions (Android 13/14+) -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
@@ -16,6 +26,7 @@
         android:allowBackup="true"
         android:label="PdaNet Bridge"
         android:supportsRtl="true"
+        android:usesCleartextTraffic="true"
         android:theme="@android:style/Theme.DeviceDefault.DayNight">
 
         <!-- Shizuku Provider Integration -->
@@ -26,7 +37,7 @@
             android:enabled="true"
             android:exported="true" />
 
-        <!-- Foreground Service with Special Use Property -->
+        <!-- Foreground Proxy Engine Service -->
         <service
             android:name=".ProxyService"
             android:enabled="true"
@@ -37,15 +48,28 @@
                 android:value="TetheringProxyRelay" />
         </service>
 
-        <!-- Main Launcher Activity -->
+        <!-- VPN Fallback Service -->
+        <service
+            android:name=".BridgeVpnService"
+            android:enabled="true"
+            android:exported="false"
+            android:permission="android.permission.BIND_VPN_SERVICE">
+            <intent-filter>
+                <action android:name="android.net.VpnService" />
+            </intent-filter>
+        </service>
+
+        <!-- Main Entry Activity -->
         <activity
             android:name=".MainActivity"
-            android:exported="true">
+            android:exported="true"
+            android:launchMode="singleTop">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
     </application>
 
 </manifest>
