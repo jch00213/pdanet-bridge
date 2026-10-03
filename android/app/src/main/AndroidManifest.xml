@@ -1,10 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="[http://schemas.android.com/apk/res/android](http://schemas.android.com/apk/res/android)">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <!-- Permissions required for networking and tethering -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
+    
+    <!-- Foreground Service Permissions (Required for Android 14+) -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
@@ -15,6 +18,7 @@
         android:supportsRtl="true"
         android:theme="@android:style/Theme.DeviceDefault.DayNight">
 
+        <!-- Shizuku Provider Integration -->
         <provider
             android:name="rikka.shizuku.ShizukuProvider"
             android:authorities="${applicationId}.shizuku"
@@ -22,6 +26,7 @@
             android:enabled="true"
             android:exported="true" />
 
+        <!-- Foreground Service with Special Use Property -->
         <service
             android:name=".ProxyService"
             android:enabled="true"
@@ -32,6 +37,7 @@
                 android:value="TetheringProxyRelay" />
         </service>
 
+        <!-- Main Launcher Activity -->
         <activity
             android:name=".MainActivity"
             android:exported="true">
@@ -41,4 +47,5 @@
             </intent-filter>
         </activity>
     </application>
+
 </manifest>
